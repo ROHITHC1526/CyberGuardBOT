@@ -11,154 +11,179 @@ const ChatBot = () => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Modals
   const [featureModal, setFeatureModal] = useState(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+
+  // History
+  const [showHistory, setShowHistory] = useState(false);
+  const [historyMessages, setHistoryMessages] = useState([]);
+
   const messagesEndRef = useRef(null);
 
+  /* ================= SEND MESSAGE ================= */
   const handleSendMessage = async (messageText) => {
     if (!messageText.trim()) return;
 
-    // Add user message
     const userMessage = {
       id: Date.now(),
       text: messageText,
       type: 'user',
       timestamp: new Date(),
     };
+
     setMessages((prev) => [...prev, userMessage]);
     setLoading(true);
     setError(null);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/api/analyze-message`, {
-        message: messageText,
-      });
+      const response = await axios.post(
+        `${API_BASE_URL}/api/analyze-message`,
+        { message: messageText }
+      );
 
-      const data = response.data;
-
-      // Add bot response
       const botMessage = {
         id: Date.now() + 1,
         type: 'bot',
-        result: data.data,
+        result: response.data.data,
         timestamp: new Date(),
       };
+
       setMessages((prev) => [...prev, botMessage]);
     } catch (err) {
-      const errorText = err.response?.data?.error || err.message || 'Failed to analyze message';
+      const errorText =
+        err.response?.data?.error ||
+        err.message ||
+        'Failed to analyze message';
+
       setError(errorText);
-      const errorMessage = {
-        id: Date.now() + 1,
-        type: 'error',
-        text: errorText,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+      setMessages((prev) => [
+        ...prev,
+        { id: Date.now() + 1, type: 'error', text: errorText },
+      ]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Auto-scroll to latest message
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, loading]);
-
-  // Feature modal data
-  const featureData = {
-    instant: {
-      icon: '⚡',
-      title: 'Instant Analysis',
-      description: 'Our AI-powered engine analyzes messages in real-time, providing immediate threat assessment and scam detection. Get results within seconds, not minutes.',
-      color: '#FFA500'
-    },
-    detailed: {
-      icon: '🎯',
-      title: 'Detailed Explanations',
-      description: 'Receive comprehensive breakdowns of why a message is flagged as suspicious. We highlight specific red flags, phishing indicators, and security concerns with clear explanations.',
-      color: '#FF3B3B'
-    },
-    secure: {
-      icon: '🔒',
-      title: 'Secure & Private',
-      description: 'Your privacy matters. All messages are analyzed securely and never stored permanently. We use end-to-end encryption and follow strict data protection protocols.',
-      color: '#FFD700'
+  /* ================= FETCH HISTORY ================= */
+  const fetchHistory = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/messages`);
+      setHistoryMessages(res.data.data?.messages || []);
+      setShowHistory(true);
+    } catch (err) {
+      console.error('Failed to fetch history');
     }
   };
 
-  const handleFeatureClick = (featureKey) => {
-    setFeatureModal(featureKey);
-  };
-
-  const closeFeatureModal = () => {
-    setFeatureModal(null);
-  };
-
-  const handleBackClick = () => {
-    if (messages.length > 0) {
-      setMessages([]);
-      setError(null);
-    }
-  };
-
-  const handleClear = () => {
-    setShowClearConfirm(true);
-  };
-
-  const confirmClear = () => {
+  /* ================= CLEAR CHAT ================= */
+  const clearChat = () => {
     setMessages([]);
     setError(null);
     setShowClearConfirm(false);
   };
 
-  const cancelClear = () => {
-    setShowClearConfirm(false);
+  /* ================= AUTO SCROLL ================= */
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, loading]);
+
+  /* ================= FEATURES ================= */
+  const featureData = {
+    instant: {
+      icon: '⚡',
+      title: 'Instant Analysis',
+      description:
+        'AI analyzes suspicious messages in real time and flags scams instantly.',
+    },
+    detailed: {
+      icon: '🎯',
+      title: 'Detailed Explanation',
+      description:
+        'Clear explanation of phishing signs, malicious intent, and risk score.',
+    },
+    secure: {
+      icon: '🔒',
+      title: 'Secure & Private',
+      description:
+        'Your messages are processed securely and never stored permanently.',
+    },
   };
 
   return (
     <div className="chatbot-container">
-      {/* Feature Modal */}
+
+      {/* ================= HISTORY POPUP ================= */}
+      {showHistory && (
+        <div className="history-overlay">
+          <div className="history-popup">
+            <h2 className="history-title">Chat History</h2>
+
+            <div className="history-content">
+              {historyMessages.length === 0 && (
+                <p className="empty-history">No history found</p>
+              )}
+              {historyMessages.map((m) => (
+                <div key={m._id} className="history-item">
+                  {m.message}
+                </div>
+              ))}
+            </div>
+
+            <button
+              className="history-back-btn"
+              onClick={() => setShowHistory(false)}
+            >
+              ← Back to Chat
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ================= FEATURE MODAL ================= */}
       {featureModal && (
-        <div className="modal-overlay" onClick={closeFeatureModal}>
+        <div className="modal-overlay" onClick={() => setFeatureModal(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={closeFeatureModal}>×</button>
-            <div className="modal-icon" style={{ color: featureData[featureModal].color }}>
+            <button className="modal-close" onClick={() => setFeatureModal(null)}>
+              ×
+            </button>
+            <div className="modal-icon">
               {featureData[featureModal].icon}
             </div>
-            <h3 className="modal-title">{featureData[featureModal].title}</h3>
-            <p className="modal-description">{featureData[featureModal].description}</p>
+            <h3>{featureData[featureModal].title}</h3>
+            <p>{featureData[featureModal].description}</p>
           </div>
         </div>
       )}
 
-      {/* Clear History Confirmation Modal */}
+      {/* ================= CLEAR CONFIRM MODAL ================= */}
       {showClearConfirm && (
-        <div className="modal-overlay" onClick={cancelClear}>
-          <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="confirm-icon">⚠️</div>
-            <h3 className="confirm-title">Clear Chat History?</h3>
-            <p className="confirm-message">This will permanently delete all messages and analysis results. This action cannot be undone.</p>
+        <div className="modal-overlay">
+          <div className="confirm-modal">
+            <h3>Clear Chat History?</h3>
+            <p>This will delete all messages from this chat.</p>
             <div className="confirm-buttons">
-              <button className="confirm-btn cancel-btn" onClick={cancelClear}>Cancel</button>
-              <button className="confirm-btn delete-btn" onClick={confirmClear}>Clear All</button>
+              <button onClick={() => setShowClearConfirm(false)}>
+                Cancel
+              </button>
+              <button className="delete-btn" onClick={clearChat}>
+                Clear
+              </button>
             </div>
           </div>
         </div>
       )}
 
+      {/* ================= HEADER ================= */}
       <div className="chatbot-header">
         <div className="header-content">
-          {/* Back Button */}
-          {messages.length > 0 && (
-            <button className="back-btn" onClick={handleBackClick} title="Back to welcome screen">
-              <span className="back-icon">←</span>
-            </button>
-          )}
-          
+
+          <button className="history-btn-animated" onClick={fetchHistory}>
+            History
+          </button>
+
           <div className="logo">
             <div className="logo-icon">🛡️</div>
             <div className="logo-text">
@@ -166,84 +191,58 @@ const ChatBot = () => {
               <p>AI-Powered Scam Detection</p>
             </div>
           </div>
+
+          {/* ✅ CLEAR HISTORY BUTTON */}
           {messages.length > 0 && (
-            <button className="clear-btn" onClick={handleClear}>
-              Clear History
+            <button
+              className="clear-btn"
+              onClick={() => setShowClearConfirm(true)}
+            >
+              Clear Chat
             </button>
           )}
         </div>
       </div>
 
+      {/* ================= CHAT ================= */}
       <div className="chatbot-messages">
         {messages.length === 0 && (
           <div className="welcome-message">
-            <div className="welcome-icon">🔍</div>
             <h2>Welcome to CyberGuard Bot</h2>
-            <p>Paste any suspicious SMS or email message below to analyze it for scam indicators.</p>
+            <p>Paste any suspicious SMS or email to analyze.</p>
+
             <div className="welcome-features">
-              <div 
-                className="feature" 
-                onClick={() => handleFeatureClick('instant')}
-                role="button"
-                tabIndex={0}
-                onKeyPress={(e) => e.key === 'Enter' && handleFeatureClick('instant')}
-              >
-                <span className="feature-icon">⚡</span>
-                <span>Instant Analysis</span>
-              </div>
-              <div 
-                className="feature" 
-                onClick={() => handleFeatureClick('detailed')}
-                role="button"
-                tabIndex={0}
-                onKeyPress={(e) => e.key === 'Enter' && handleFeatureClick('detailed')}
-              >
-                <span className="feature-icon">🎯</span>
-                <span>Detailed Explanations</span>
-              </div>
-              <div 
-                className="feature" 
-                onClick={() => handleFeatureClick('secure')}
-                role="button"
-                tabIndex={0}
-                onKeyPress={(e) => e.key === 'Enter' && handleFeatureClick('secure')}
-              >
-                <span className="feature-icon">🔒</span>
-                <span>Secure & Private</span>
-              </div>
+              {Object.keys(featureData).map((key) => (
+                <div
+                  key={key}
+                  className="feature"
+                  onClick={() => setFeatureModal(key)}
+                >
+                  {featureData[key].icon} {featureData[key].title}
+                </div>
+              ))}
             </div>
           </div>
         )}
 
         {messages.map((message) => (
-          <div key={message.id} className={`message-wrapper ${message.type}`}>
+          <div key={message.id}>
             {message.type === 'user' && (
               <MessageDisplay text={message.text} type="user" />
             )}
-            {message.type === 'bot' && message.result && (
+            {message.type === 'bot' && (
               <ResultCard result={message.result} />
             )}
             {message.type === 'error' && (
-              <div className="error-message">
-                <span className="error-icon">⚠️</span>
-                <span>{message.text}</span>
-              </div>
+              <div className="error-message">{message.text}</div>
             )}
           </div>
         ))}
 
         {loading && (
-          <div className="loading-message">
-            <div className="typing-indicator">
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
-            <span>Analyzing message...</span>
-          </div>
+          <div className="loading-message">Analyzing message...</div>
         )}
-        
-        {/* Scroll anchor */}
+
         <div ref={messagesEndRef} />
       </div>
 

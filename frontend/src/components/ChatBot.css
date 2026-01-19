@@ -744,3 +744,114 @@
     align-items: center;
   }
 }
+/* ===== HISTORY ADD-ON STYLES ===== */
+
+.history-btn-animated {
+  background: #000;
+  color: #fff;
+  border: 1px solid #fff;
+  padding: 8px 18px;
+  border-radius: 20px;
+  cursor: pointer;
+  animation: glowWhite 2s infinite;
+}
+
+@keyframes glowWhite {
+  0% { box-shadow: 0 0 5px #fff; }
+  50% { box-shadow: 0 0 18px #fff; }
+  100% { box-shadow: 0 0 5px #fff; }
+}
+
+.history-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.history-popup {
+  background: #111;
+  width: 90%;
+  max-width: 420px;
+  height: 80%;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(40px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.history-content {
+  flex: 1;
+  overflow-y: auto;
+  margin-top: 10px;
+}
+
+.history-item {
+  background: #1a1a1a;
+  border-left: 3px solid #fff;
+  padding: 10px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+}
+
+.history-back-btn {
+  margin-top: 15px;
+  padding: 12px;
+  border-radius: 25px;
+  background: #fff;
+  color: #000;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+}
+
+.history-back-btn:hover {
+  box-shadow: 0 6px 20px rgba(255,255,255,0.4);
+}
+/* ================= CLEAR CHAT BUTTON ================= */
+.clear-btn {
+  background: linear-gradient(135deg, #ff3b3b, #b31217);
+  color: #ffffff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.4px;
+  box-shadow: 0 4px 12px rgba(255, 59, 59, 0.4);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Hover effect */
+.clear-btn:hover {
+  background: linear-gradient(135deg, #ff5f5f, #d81e1e);
+  box-shadow: 0 6px 18px rgba(255, 59, 59, 0.6);
+  transform: translateY(-2px) scale(1.03);
+}
+
+/* Active (click) */
+.clear-btn:active {
+  transform: scale(0.96);
+  box-shadow: 0 3px 8px rgba(255, 59, 59, 0.4);
+}
+
+/* Disabled state */
+.clear-btn:disabled {
+  background: #444;
+  cursor: not-allowed;
+  box-shadow: none;
+  opacity: 0.6;
+}
