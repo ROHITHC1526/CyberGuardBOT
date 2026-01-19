@@ -1,0 +1,50 @@
+.message-display {
+  max-width: 75%;
+  word-wrap: break-word;
+  animation: messagePopIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes messagePopIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(20px);
+  }
+  60% {
+    transform: scale(1.05) translateY(-5px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.message-display.user .message-content {
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  padding: 14px 20px;
+  border-radius: 20px 20px 6px 20px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.15);
+  position: relative;
+}
+
+.message-display.bot .message-content {
+  background: rgba(255, 255, 255, 0.03);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.9);
+  padding: 14px 20px;
+  border-radius: 20px 20px 20px 6px;
+  line-height: 1.6;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .message-display {
+    max-width: 85%;
+  }
+}
